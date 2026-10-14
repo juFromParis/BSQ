@@ -11,6 +11,7 @@ int main(int ac, char **av)
 
     if (ac != 2)
         return (1);
+
     bsq.map = NULL;
     bsq.size = 0;
     bsq.max_x = 0;
@@ -22,20 +23,6 @@ int main(int ac, char **av)
         return (1);
     }
 
-    int y = 0;
-    while (bsq.map[y] != NULL)
-    {
-        int x = 0;
-        while (x < bsq.nb_col)
-        {
-            solve(&bsq, x, y);
-            x++;
-        }
-        y++;
-    }
-
-    printmap(&bsq);
-    free_map(bsq.map);
     return (0);
 }
 
@@ -46,11 +33,30 @@ int bsq_start(t_bsq *bsq, char *filename)
     file = fopen(filename, "r");
     if (!file)
         return (1);
+
     if(parse_map(bsq, file))
         return (1);
+
     fclose(file);
+
     if(check_valid_chars(bsq))
         return (1);
+
+    int y = 0;
+    while (bsq->map[y] != NULL)
+    {
+        int x = 0;
+        while (x < bsq->nb_col)
+        {
+            solve(bsq, x, y);
+            x++;
+        }
+        y++;
+    }
+
+    printmap(bsq);
+    free_map(bsq->map);
+
     return (0);
 }
 
@@ -64,7 +70,7 @@ int check_valid_chars(t_bsq *bsq)
         {
             if(bsq->map[y][x] != bsq->c_empty && bsq->map[y][x] != bsq->c_wall)
             {
-                fputs("map error\n", stderr);
+                fprintf(stderr, "map error\n");
                 return (1);
             }
             x++;
@@ -93,14 +99,14 @@ int parse_map(t_bsq *bsq, FILE *file)
         if (n == 1 && parse_param(bsq, line) != 0)
         {
             free(line);
-            return (fputs("map error\n", stderr), 1);
+            return (fprintf(stderr, "map error\n"), 1);
         }
         if (n > 1)
         {
             if (l >= bsq->nb_line || add_mapline(bsq, line, l) != 0)
             {
                 free(line);
-                return (fputs("map error\n", stderr), 1);
+                return (fprintf(stderr, "map error\n"), 1);
             }
             l++;
             has_line = 1;
@@ -110,11 +116,14 @@ int parse_map(t_bsq *bsq, FILE *file)
     if (n == 0 || bsq->nb_line != n - 1)
     {
         free(line);
-        return (fputs("map error\n", stderr), 1);
+        return (fprintf(stderr, "map error\n"), 1);
     }
+
     free(line);
+
     if (!has_line)
         return (1);
+
     return (0);
 }
 
@@ -128,6 +137,7 @@ int ft_atoi(char *str)
         n = n * 10 + (str[i] - '0');
         i++;
     }
+
     return (n);
 }
 
@@ -137,6 +147,7 @@ int parse_param(t_bsq *bsq, char *line)
     int number;
 
     bsq->nb_line = ft_atoi(line);
+
     if (bsq->nb_line <= 0)
         return (1);
 
@@ -155,8 +166,10 @@ int parse_param(t_bsq *bsq, char *line)
     if (bsq->c_empty == '\0' || bsq->c_wall == '\0'
         || bsq->c_draw == '\0')
         return (1);
+
     if (check_double(bsq))
         return (1);
+
     return (0);
 }
 
@@ -166,6 +179,7 @@ int check_double(t_bsq *bsq)
         || bsq->c_empty == bsq->c_draw
         || bsq->c_wall == bsq->c_draw)
         return (1);
+
     return (0);
 }
 
@@ -184,8 +198,10 @@ int add_mapline(t_bsq *bsq, char *line, int l)
         return (1);
 
     bsq->nb_col = i;
+
     if (add_mapline_map(bsq, line, l) != 0)
         return (1);
+
     return (0);
 }
 
@@ -193,13 +209,17 @@ int add_mapline_map(t_bsq *bsq, char *line, int l)
 {
     if (bsq->map == NULL)
         bsq->map = calloc(bsq->nb_line + 1, sizeof(char *));
+        
     if (bsq->map == NULL)
         return (1);
 
     bsq->map[l] = strdup(line);
+
     if (bsq->map[l] == NULL)
         return (1);
+
     bsq->map[l + 1] = NULL;
+
     return (0);
 }
 
@@ -244,6 +264,7 @@ void free_map(char **map)
         free(map[i]);
         i++;
     }
+
     free(map);
 }
 
